@@ -6,17 +6,12 @@ import (
 	"os"
 
 	"github.com/Niraj1910/Task-REST-APIs.git/model"
-	"github.com/joho/godotenv"
+	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func ConnectDB() *gorm.DB {
-
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Warning: Could not load .env file →", err)
-	}
 
 	host := os.Getenv("HOST")
 	user := os.Getenv("USER")
@@ -43,11 +38,11 @@ func ConnectDB() *gorm.DB {
 		panic("failed to connect to database: " + err.Error())
 	}
 
-	err = db.AutoMigrate(&model.User{}, &model.Task{})
+	err = db.AutoMigrate(&model.User{}, &model.Task{}, &model.EmailVerification{})
 	if err != nil {
 		panic("failed to auto-migrate: " + err.Error())
 	}
 
-	fmt.Println("→ Database connected and models migrated successfully")
+	log.Info().Msg("Database connected and models migrated successfully")
 	return db
 }

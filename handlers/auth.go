@@ -1,8 +1,15 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
+	"os"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 
 	"github.com/Niraj1910/Task-REST-APIs.git/auth"
 	"github.com/Niraj1910/Task-REST-APIs.git/model"
@@ -37,34 +44,132 @@ func RegisterUser(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// check if the user's email already exists
-		var existing model.User
-		err = db.Where("email = ?", input.Email).Find(&existing).Error
-		if err != nil {
-			ctx.JSON(http.StatusConflict, gin.H{
-				"message": "email already  exists",
-			})
+		if input.Password != input.ConfirmPassword {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Password do not match"})
 			return
 		}
 
+		// check if the user's email already exists
+		var count int64
+		db.Model(&model.User{}).Where("email = ?", input.Email).Count(&count)
+		if count > 0 {
+			ctx.JSON(http.StatusConflict, gin.H{"err": "Email already registered"})
+			return
+		}
+
+		token := uuid.New().String()
+		expires := time.Now().Add(10 * time.Minute)
+
+		// store temp data
+		verification := model.EmailVerification{
+			Email:        input.Email,
+			TempUsername: input.UserName,
+			TempPassword: utils.HashPassword(input.Password),
+			Token:        token,
+			ExpiresAt:    expires,
+		}
+
+		err = db.Create(&verification).Error
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process registration"})
+			return
+		}
+
+		// Build + send the email to confirm the registration
+		baseUrl := os.Getenv("PROD_URL")
+		if baseUrl == "" {
+			baseUrl = "http://localhost:4000"
+		}
+		verifyLink := fmt.Sprintf("%s/verify?token=%s&email=%s", baseUrl, token, url.QueryEscape(input.Email))
+
+		go func() {
+			err := utils.SendVerificationMail(input.UserName, input.Email, verifyLink)
+			if err != nil {
+				log.Error().Err(err).Str("email", input.Email).Msg("Failed to send verification email")
+			}
+		}()
+
+		ctx.JSON(http.StatusAccepted, gin.H{
+			"message": "Registration request received! Please check your email to verify and complete signup.",
+			"email":   input.Email,
+		})
+	}
+}
+
+func VerifyEmailAndRegisterUser(db *gorm.DB) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+		token := ctx.Query("token")
+		email := ctx.Query("email")
+
+		if token == "" || email == "" {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Missing token or email in verification link"})
+			return
+		}
+
+		// start transaction
+		tx := db.Begin()
+		if tx.Error != nil {
+			log.Error().Err(tx.Error).Msg("Failed to start transaction")
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Server error"})
+			return
+		}
+
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+				log.Error().Interface("panic", r).Msg("Panic in verification – rollback")
+			}
+		}()
+
+		// find verification record
+		var verification model.EmailVerification
+		err := tx.Where("token = ? AND email = ? AND expires_at > ? AND used = ?", token, email, time.Now(), false).First(&verification).Error
+		if err != nil {
+
+			tx.Rollback()
+
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				ctx.JSON(http.StatusBadRequest, gin.H{
+					"error": "Invalid, expired, or already used verification link. Please register again.",
+				})
+				return
+			}
+			log.Error().Err(err).Msg("Database error during verification")
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Verification failed due to a server error",
+				"details": "Please try again later or contact support",
+			})
+		}
+
 		user := model.User{
-			Name:     input.UserName,
-			Email:    input.Email,
-			Password: utils.HashPassword(input.Password),
+			Name:     verification.TempUsername,
+			Email:    verification.Email,
+			Password: verification.TempPassword,
 		}
 
 		err = db.Create(&user).Error
 		if err != nil {
+
+			tx.Rollback()
+
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"message": "failed to create user",
+				"error": "Failed to activate account – please try again or contact support",
 			})
 			return
 		}
 
+		// commit transaction
+		if err := tx.Commit().Error; err != nil {
+			log.Error().Err(err).Msg("Transaction commit failed")
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Server error during commit"})
+			return
+		}
+
 		ctx.JSON(http.StatusOK, gin.H{
-			"id":        user.ID,
-			"user name": user.Name,
-			"email":     user.Email,
+			"message": "Email verified successfully! Your account is now active.",
+			"email":   user.Email,
+			"next":    "You can now log in at /login",
 		})
 	}
 }
