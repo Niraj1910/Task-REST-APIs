@@ -202,16 +202,59 @@ func GetTasks(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		pageStr := ctx.DefaultQuery("page", "1")
+		limitStr := ctx.DefaultQuery("limit", "10")
+		sort := ctx.DefaultQuery("sort", "created_at:desc")
+		status := ctx.Query("status")
+
+		page, _ := strconv.Atoi(pageStr)
+		limit, _ := strconv.Atoi(limitStr)
+
+		if page < 1 {
+			page = 1
+		}
+		if limit < 1 {
+			limit = 10
+		}
+		if limit > 100 {
+			limit = 100 // prevent huge responses
+		}
+
+		offset := (page - 1) * limit
+
+		// build base query
+		query := db.Where("user_id = ?", userID)
+
+		if status != "" {
+			query = query.Where("status = ?", status)
+		}
+
+		// Optional sorting
+		switch sort {
+		case "created_at:asc":
+			query = query.Order("created_at ASC")
+		case "priority:asc":
+			query = query.Order("priority ASC")
+		case "priority:desc":
+			query = query.Order("priority DESC")
+		default:
+			query = query.Order("created_at DESC") // newest first
+		}
+
+		var total int64
+		query.Model(&model.Task{}).Count(&total)
+
 		var tasks []model.Task
 
-		err := db.Where("user_id = ?", userID).Find(&tasks).Error
+		err := query.Limit(limit).Offset(offset).Find(&tasks).Error
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve tasks", "details": err.Error()})
 			return
 		}
 
 		ctx.JSON(http.StatusOK, gin.H{
-			"count": len(tasks),
+			"Total": total,
+			"Page":  page,
 			"Tasks": tasks,
 		})
 	}
