@@ -45,7 +45,7 @@ func RegisterUser(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		if input.Password != input.ConfirmPassword {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Password do not match"})
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Password do not match"})
 			return
 		}
 
@@ -89,7 +89,7 @@ func RegisterUser(db *gorm.DB) gin.HandlerFunc {
 			}
 		}()
 
-		ctx.JSON(http.StatusAccepted, gin.H{
+		ctx.JSON(http.StatusCreated, gin.H{
 			"message": "Registration request received! Please check your email to verify and complete signup.",
 			"email":   input.Email,
 		})
@@ -205,7 +205,7 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 
 		// check password
 		if !utils.CompareHashedPassword(user.Password, input.Password) {
-			ctx.JSON(http.StatusBadRequest, gin.H{
+			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"error": "incorrect password",
 			})
 			return

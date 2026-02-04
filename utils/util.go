@@ -28,7 +28,7 @@ func CompareHashedPassword(hashedPassword, password string) bool {
 
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
-		panic("password is incorrect  " + password + ": " + err.Error())
+		log.Err(err).Msg(("password is incorrect  " + password))
 	}
 	return err == nil
 }
