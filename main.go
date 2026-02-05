@@ -12,6 +12,7 @@ import (
 	"github.com/Niraj1910/Task-REST-APIs.git/middlewares"
 	"github.com/Niraj1910/Task-REST-APIs.git/model"
 	"github.com/Niraj1910/Task-REST-APIs.git/utils"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -41,6 +42,14 @@ func main() {
 
 	router := gin.Default()
 
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "https://your-frontend-domain.com"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
 	router.GET("/ping", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"message": "pong"})
 	})
@@ -58,6 +67,13 @@ func main() {
 		protectedTaskRoute.GET("/:id", handlers.GetTaskByID(db))
 		protectedTaskRoute.DELETE("/:id", handlers.DeleteTask(db))
 
+	}
+
+	protectedUserRoute := router.Group("/api/user", middlewares.AuthMiddleware)
+	{
+		protectedUserRoute.GET("/profile", handlers.GetUserProfile(db))
+		protectedUserRoute.GET("/task", handlers.GetUserTasks(db))
+		protectedUserRoute.PATCH("/update", handlers.UpdateUser(db))
 	}
 
 	router.Run(":4000")

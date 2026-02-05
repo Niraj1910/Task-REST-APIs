@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"net/http"
 	"os"
@@ -50,20 +49,12 @@ func UserIDFromContext(ctx *gin.Context) (uint, bool) {
 
 func SendVerificationMail(userName, toEmail, verifyLink string) error {
 
-	host := os.Getenv("SMTP_HOST")
-	portStr := os.Getenv("SMTP_PORT")
-	fromAddr := os.Getenv("SMTP_FROM")
-	password := os.Getenv("SMTP_PASSWORD")
+	fromAddr := os.Getenv("RESEND_FROM_ADDRESS")
 	resendApiKey := os.Getenv("RESEND_API_KEY")
 
-	if host == "" || fromAddr == "" || password == "" {
-		log.Warn().Msg("SMTP config missing - skipping mail send")
+	if resendApiKey == "" || fromAddr == "" {
+		log.Warn().Msg("Resend mail 'from address or api key' config missing - skipping mail send")
 		return nil
-	}
-
-	port := 587 // default
-	if portStr != "" {
-		fmt.Sscanf(portStr, "%d", &port)
 	}
 
 	// load html template
