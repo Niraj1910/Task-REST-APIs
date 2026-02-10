@@ -1,4 +1,4 @@
-package handlers_test
+package handlers
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/handlers"
 	"github.com/Niraj1910/Task-REST-APIs.git/model"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -44,7 +43,7 @@ func TestGetUserProfile_Success(t *testing.T) {
 	user := model.User{Name: "Niraj", Email: "niraj@example.com"}
 	require.NoError(t, db.Create(&user).Error)
 
-	handler := handlers.GetUserProfile(db)
+	handler := GetUserProfile(db)
 	c, w := setupContext(http.MethodGet, "/users/me", "", user.ID)
 
 	handler(c)
@@ -62,7 +61,7 @@ func TestGetUserProfile_Success(t *testing.T) {
 func TestGetUserProfile_NotFound(t *testing.T) {
 	db := setupTestDB(t)
 
-	handler := handlers.GetUserProfile(db)
+	handler := GetUserProfile(db)
 	c, w := setupContext(http.MethodGet, "/users/me", "", 999) // non-existent ID
 
 	handler(c)
@@ -76,7 +75,7 @@ func TestUpdateUser_Success_PartialName(t *testing.T) {
 	user := model.User{Name: "OldName", Email: "test@example.com"}
 	require.NoError(t, db.Create(&user).Error)
 
-	handler := handlers.UpdateUser(db)
+	handler := UpdateUser(db)
 	body := `{"name": "NewName"}`
 	c, w := setupContext(http.MethodPatch, "/users/me", body, user.ID)
 
@@ -98,7 +97,7 @@ func TestUpdateUser_EmailAlreadyTaken(t *testing.T) {
 	require.NoError(t, db.Create(&user1).Error)
 	require.NoError(t, db.Create(&user2).Error)
 
-	handler := handlers.UpdateUser(db)
+	handler := UpdateUser(db)
 	body := `{"email": "taken@example.com"}`
 	c, w := setupContext(http.MethodPatch, "/users/me", body, user1.ID)
 
@@ -113,7 +112,7 @@ func TestUpdateUser_NoFieldsProvided(t *testing.T) {
 	user := model.User{Name: "Test"}
 	db.Create(&user)
 
-	handler := handlers.UpdateUser(db)
+	handler := UpdateUser(db)
 	body := `{}` // empty
 	c, w := setupContext(http.MethodPatch, "/users/me", body, user.ID)
 
@@ -134,14 +133,14 @@ func TestGetUserTasks_Success_WithPagination(t *testing.T) {
 		})
 	}
 
-	handler := handlers.GetUserTasks(db)
+	handler := GetUserTasks(db)
 	c, w := setupContext(http.MethodGet, "/tasks?page=2&limit=5", "", userID)
 
 	handler(c)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var resp handlers.TaskListResponse
+	var resp TaskListResponse
 	json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Len(t, resp.Tasks, 5)

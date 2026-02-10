@@ -1,4 +1,4 @@
-package handlers_test
+package handlers
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/handlers"
 	"github.com/Niraj1910/Task-REST-APIs.git/model"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +21,7 @@ func TestCreateTask_OwnershipContext(t *testing.T) {
 	err = db.AutoMigrate(&model.Task{})
 	require.NoError(t, err)
 
-	testHandler := handlers.CreateTask(db)
+	testHandler := CreateTask(db)
 
 	rc := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(rc)

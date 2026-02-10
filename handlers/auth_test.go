@@ -1,4 +1,4 @@
-package handlers_test
+package handlers
 
 import (
 	"bytes"
@@ -8,14 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"gorm.io/driver/sqlite"
-
-	"github.com/Niraj1910/Task-REST-APIs.git/handlers"
 	"github.com/Niraj1910/Task-REST-APIs.git/model"
 	"github.com/Niraj1910/Task-REST-APIs.git/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/sqlite"
 
 	"gorm.io/gorm"
 )
@@ -35,7 +33,7 @@ func TestRegisterUser_DuplicateEmail(t *testing.T) {
 	db.Create(&model.User{Email: "test@example.com"})
 
 	// Create test Handler
-	testHandler := handlers.RegisterUser(db)
+	testHandler := RegisterUser(db)
 
 	body := `{
 		"username": "testuser",
@@ -64,7 +62,7 @@ func TestRegisterUser_Success_CreatesVerification(t *testing.T) {
 	err = db.AutoMigrate(&model.User{}, &model.EmailVerification{})
 	require.NoError(t, err)
 
-	testHandler := handlers.RegisterUser(db)
+	testHandler := RegisterUser(db)
 
 	body := `{
         "username": "niraj",
@@ -110,7 +108,7 @@ func TestLoginUser_Success_ReturnsToken(t *testing.T) {
 		Password: hashed,
 	})
 
-	testHandler := handlers.LoginUser(db)
+	testHandler := LoginUser(db)
 
 	body := `{
         "email": "niraj@example.com",
@@ -137,7 +135,7 @@ func TestLoginUser_WrongPassword_Returns401(t *testing.T) {
 	hashed := utils.HashPassword("strongpass123")
 	db.Create(&model.User{Email: "niraj@example.com", Password: hashed})
 
-	handler := handlers.LoginUser(db)
+	handler := LoginUser(db)
 
 	body := `{
         "email": "niraj@example.com",
