@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+    - "4000:4000"
+    environment:
+    - HOST=db
+    - USER=${USER}
+    - PASSWORD=${PASSWORD}
+    - DBNAME=${DBNAME}
+    - PORT=${PORT}
+    - SSLMODE=${SSLMODE}
+    - JWT_SECRET=${JWT_SECRET}
+    - ENV=${ENV}
+    - RESEND_API_KEY=${RESEND_API_KEY}
+    - RESEND_FROM_ADDRESS=${RESEND_FROM_ADDRESS}
+
+    depends_on:
+    - db
+    restart: unless-stopped
+    extra_hosts:
+    - "api.resend.com:104.18.29.242"
+  db:
+      image: postgres:16-alpine
+      restart: unless-stopped
+      environment:
+        POSTGRES_USER: ${USER}
+        POSTGRES_PASSWORD: ${PASSWORD}
+        POSTGRES_DB: ${DBNAME}
+      ports:
+        - "5433:5432"
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+
+volumes:
+    postgres_data:

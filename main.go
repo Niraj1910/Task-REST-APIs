@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -42,8 +43,14 @@ func main() {
 
 	router := gin.Default()
 
+	orgins := []string{"http://localhost:3000", "http://localhost:5173"}
+	cliProd := os.Getenv("CLIENT_PROD_URL")
+	if cliProd != "" {
+		orgins = append(orgins, cliProd)
+	}
+
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "https://your-frontend-domain.com"},
+		AllowOrigins:     orgins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
