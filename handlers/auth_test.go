@@ -12,10 +12,6 @@ import (
 	"github.com/Niraj1910/Task-REST-APIs.git/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-
-	"gorm.io/gorm"
 )
 
 func init() {
@@ -24,10 +20,7 @@ func init() {
 
 func TestRegisterUser_DuplicateEmail(t *testing.T) {
 	// Setup in-memory DB
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-	require.NoError(t, err)
-	err = db.AutoMigrate(&model.User{}, &model.EmailVerification{})
-	require.NoError(t, err)
+	db := setupTestDB(t)
 
 	// Pre-create a user with email "test@gmai.com"
 	db.Create(&model.User{Email: "test@example.com"})
@@ -57,10 +50,7 @@ func TestRegisterUser_DuplicateEmail(t *testing.T) {
 
 func TestRegisterUser_Success_CreatesVerification(t *testing.T) {
 
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-	require.NoError(t, err)
-	err = db.AutoMigrate(&model.User{}, &model.EmailVerification{})
-	require.NoError(t, err)
+	db := setupTestDB(t)
 
 	testHandler := RegisterUser(db)
 
@@ -89,7 +79,7 @@ func TestRegisterUser_Success_CreatesVerification(t *testing.T) {
 
 	// Check verification record exists
 	var ver model.EmailVerification
-	err = db.Where("email = ?", "niraj@example.com").First(&ver).Error
+	err := db.Where("email = ?", "niraj@example.com").First(&ver).Error
 	assert.NoError(t, err)
 	assert.False(t, ver.Used)
 	assert.NotEmpty(t, ver.Token)
@@ -97,8 +87,7 @@ func TestRegisterUser_Success_CreatesVerification(t *testing.T) {
 }
 
 func TestLoginUser_Success_ReturnsToken(t *testing.T) {
-	db, _ := gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{})
-	db.AutoMigrate(&model.User{})
+	db := setupTestDB(t)
 
 	// Pre-create a user
 	hashed := utils.HashPassword("strongpass123")
@@ -129,8 +118,7 @@ func TestLoginUser_Success_ReturnsToken(t *testing.T) {
 }
 
 func TestLoginUser_WrongPassword_Returns401(t *testing.T) {
-	db, _ := gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{})
-	db.AutoMigrate(&model.User{})
+	db := setupTestDB(t)
 
 	hashed := utils.HashPassword("strongpass123")
 	db.Create(&model.User{Email: "niraj@example.com", Password: hashed})

@@ -17,9 +17,9 @@ import (
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=private"), &gorm.Config{})
 	require.NoError(t, err)
-	require.NoError(t, db.AutoMigrate(&model.User{}, &model.Task{}))
+	require.NoError(t, db.AutoMigrate(&model.User{}, &model.Task{}, &model.EmailVerification{}))
 	return db
 }
 

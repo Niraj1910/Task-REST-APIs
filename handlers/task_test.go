@@ -9,17 +9,11 @@ import (
 	"github.com/Niraj1910/Task-REST-APIs.git/model"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 func TestCreateTask_OwnershipContext(t *testing.T) {
 
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-	require.NoError(t, err)
-	err = db.AutoMigrate(&model.Task{})
-	require.NoError(t, err)
+	db := setupTestDB(t)
 
 	testHandler := CreateTask(db)
 
