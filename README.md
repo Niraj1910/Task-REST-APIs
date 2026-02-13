@@ -98,5 +98,6 @@ Use the IPv4 pooled connection URI from Supabase (port 6543) to avoid "network i
 - DELETE /api/task/:id
 
 **Testing**
-Bashgo test ./... -v
+```bash 
+go test ./... -v
 go test ./handlers -v
