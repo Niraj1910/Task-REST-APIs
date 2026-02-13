@@ -33,6 +33,10 @@ func ConnectDB() *gorm.DB {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		host, user, password, dbName, port, sslMode)
 
+	if os.Getenv("POSTGRES_URI") != "" {
+		dsn = os.Getenv("POSTGRES_URI")
+	}
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect to database: " + err.Error())
