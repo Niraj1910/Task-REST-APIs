@@ -4,12 +4,27 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/model"
-	"github.com/Niraj1910/Task-REST-APIs.git/utils"
+	"github.com/Niraj1910/Task-REST-APIs/model"
+	_ "github.com/Niraj1910/Task-REST-APIs/types"
+	"github.com/Niraj1910/Task-REST-APIs/utils"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
+// CreateTask godoc
+// @Summary      Create a new task
+// @Description  Creates a task owned by the authenticated user
+// @Tags         Tasks
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body body model.Task true "Task data (title required)"
+// @Success      201 {object} model.Task
+// @Failure      400 {object} map[string]string "Invalid input"
+// @Failure      401 {object} map[string]string "Unauthorized"
+// @Failure      500 {object} map[string]string "Server error"
+// @Router       /api/task/new [post]
 func CreateTask(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -48,6 +63,21 @@ func CreateTask(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// UpdateTask godoc
+// @Summary      Update a task
+// @Description  Updates task fields (partial update allowed) if owned by the user
+// @Tags         Tasks
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id   path int true "Task ID"
+// @Param        body body model.Task true "Updated fields"
+// @Success      200 {object} model.Task
+// @Failure      400 {object} map[string]string "Invalid input"
+// @Failure      401 {object} map[string]string "Unauthorized"
+// @Failure      404 {object} map[string]string "Task not found or not owned"
+// @Failure      500 {object} map[string]string "Server error"
+// @Router       /api/task/{id} [put]
 func UpdateTask(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -132,6 +162,18 @@ func UpdateTask(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// DeleteTask godoc
+// @Summary      Delete a task
+// @Description  Deletes a task if it belongs to the authenticated user
+// @Tags         Tasks
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "Task ID"
+// @Success      200 {object} map[string]string "Task deleted"
+// @Failure      401 {object} map[string]string "Unauthorized"
+// @Failure      404 {object} map[string]string "Task not found or not owned"
+// @Router       /api/task/{id} [delete]
 func DeleteTask(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -162,6 +204,18 @@ func DeleteTask(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// GetTaskByID godoc
+// @Summary      Get a single task by ID
+// @Description  Returns a task if it belongs to the authenticated user
+// @Tags         Tasks
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "Task ID"
+// @Success      200 {object} model.Task
+// @Failure      401 {object} map[string]string "Unauthorized"
+// @Failure      404 {object} map[string]string "Task not found or not owned"
+// @Router       /api/task/{id} [get]
 func GetTaskByID(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -195,6 +249,19 @@ func GetTaskByID(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// GetTasks godoc
+// @Summary      List authenticated user's tasks
+// @Description  Returns paginated list of tasks belonging to the current user
+// @Tags         Tasks
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        page   query     int     false  "Page number"                  default(1)
+// @Param        limit  query     int     false  "Items per page"               default(10)
+// @Param        status query     string  false  "Filter by status (pending, completed, etc.)"
+// @Success      200     {object} types.SwaggerTaskListResponse
+// @Failure      401     {object} map[string]string "Unauthorized"
+// @Router       /api/task [get]
 func GetTasks(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userID, ok := utils.UserIDFromContext(ctx)

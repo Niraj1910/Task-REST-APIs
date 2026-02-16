@@ -57,7 +57,7 @@ Secure, production-grade REST API built in Go for task management with JWT authe
 ## Quick Start (Docker – recommended)
 
 ```bash
-git clone https://github.com/Niraj1910/Task-REST-APIs.git
+git clone https://github.com/Niraj1910/Task-REST-APIs
 cd Task-REST-APIs
 
 cp .env.example .env

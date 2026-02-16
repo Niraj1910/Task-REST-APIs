@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/model"
-	"github.com/Niraj1910/Task-REST-APIs.git/utils"
+	"github.com/Niraj1910/Task-REST-APIs/model"
+	"github.com/Niraj1910/Task-REST-APIs/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )

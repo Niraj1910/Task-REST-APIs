@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/auth"
+	"github.com/Niraj1910/Task-REST-APIs/auth"
 	"github.com/gin-gonic/gin"
 )
 

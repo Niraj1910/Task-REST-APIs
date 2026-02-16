@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/model"
+	"github.com/Niraj1910/Task-REST-APIs/model"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )

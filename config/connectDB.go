@@ -5,7 +5,7 @@ import (
 
 	"os"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/model"
+	"github.com/Niraj1910/Task-REST-APIs/model"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

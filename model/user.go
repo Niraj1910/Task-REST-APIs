@@ -1,3 +1,5 @@
+// swagger:model
+// @ignoreEmbedded
 package model
 
 import "gorm.io/gorm"

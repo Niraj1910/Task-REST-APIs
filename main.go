@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"time"
 
@@ -8,15 +9,35 @@ import (
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/config"
-	"github.com/Niraj1910/Task-REST-APIs.git/handlers"
-	"github.com/Niraj1910/Task-REST-APIs.git/middlewares"
-	"github.com/Niraj1910/Task-REST-APIs.git/model"
-	"github.com/Niraj1910/Task-REST-APIs.git/utils"
+	"github.com/Niraj1910/Task-REST-APIs/config"
+	"github.com/Niraj1910/Task-REST-APIs/handlers"
+	"github.com/Niraj1910/Task-REST-APIs/middlewares"
+	"github.com/Niraj1910/Task-REST-APIs/model"
+	"github.com/Niraj1910/Task-REST-APIs/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+
+	_ "github.com/Niraj1910/Task-REST-APIs/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// @title           Golang Task REST API
+// @version         1.0
+// @description     Secure task management API with Golang/Gin Framework, JWT authentication and email verification.
+
+// @contact.name    Niraj Shaw
+// @contact.url     https://github.com/Niraj1910
+// @contact.email   nirazshaw156@gmail.com
+
+// @BasePath  /
+// @schemes   http
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description JWT Bearer token (format: Bearer <token>)
 
 func main() {
 
@@ -57,8 +78,21 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	router.GET("/ping", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{"message": "pong"})
+	router.GET("/ping", Ping)
+
+	router.GET("/", func(ctx *gin.Context) {
+
+		scheme := "http"
+		if ctx.Request.TLS != nil {
+			scheme = "https"
+		}
+		baseUrl := scheme + "://" + ctx.Request.Host
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": "This is Gin server for Task Managment REST APIs",
+			"info":    "Interactive API documentation is available here:",
+			"docs":    baseUrl + "/swagger/index.html",
+			"ping":    baseUrl + "/ping",
+			"status":  "API is running"})
 	})
 
 	router.POST("/register", handlers.RegisterUser(db))
@@ -81,7 +115,22 @@ func main() {
 		protectedUserRoute.GET("/profile", handlers.GetUserProfile(db))
 		protectedUserRoute.GET("/task", handlers.GetUserTasks(db))
 		protectedUserRoute.PATCH("/update", handlers.UpdateUser(db))
-	}
+		// }
 
-	router.Run(":4000")
+		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+		router.Run(":4000")
+	}
+}
+
+// Ping godoc
+// @Summary      Health check endpoint
+// @Description  Returns a simple pong message to verify the API is running
+// @Tags         Health
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} map[string]string "pong"
+// @Router       /ping [get]
+func Ping(c *gin.Context) {
+	c.JSON(200, gin.H{"message": "pong"})
 }

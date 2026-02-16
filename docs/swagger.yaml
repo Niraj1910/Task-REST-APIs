@@ -1,0 +1,602 @@
+basePath: /
+definitions:
+  handlers.LoginUserBody:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 50
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.RegisterUserBody:
+    properties:
+      confirmPassword:
+        type: string
+      email:
+        type: string
+      password:
+        maxLength: 50
+        minLength: 8
+        type: string
+      username:
+        maxLength: 20
+        minLength: 3
+        type: string
+    required:
+    - confirmPassword
+    - email
+    - password
+    - username
+    type: object
+  handlers.UpdateUserBody:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 100
+        minLength: 5
+        type: string
+      password:
+        maxLength: 255
+        minLength: 5
+        type: string
+    type: object
+  model.Task:
+    type: object
+  types.SwaggerTask:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      priority:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  types.SwaggerTaskListResponse:
+    properties:
+      meta:
+        properties:
+          limit:
+            type: integer
+          page:
+            type: integer
+          total:
+            type: integer
+        type: object
+      tasks:
+        items:
+          $ref: '#/definitions/types.SwaggerTask'
+        type: array
+    type: object
+  types.SwaggerUser:
+    properties:
+      age:
+        description: Add other fields from your real User model (age, role, is_active,
+          etc.)
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  types.SwaggerUserProfileResponse:
+    properties:
+      user:
+        $ref: '#/definitions/types.SwaggerUser'
+    type: object
+info:
+  contact:
+    email: nirazshaw156@gmail.com
+    name: Niraj Shaw
+    url: https://github.com/Niraj1910
+  description: Secure task management API with Golang/Gin Framework, JWT authentication
+    and email verification.
+  title: Golang Task REST API
+  version: "1.0"
+paths:
+  /api/task:
+    get:
+      consumes:
+      - application/json
+      description: Returns paginated list of tasks belonging to the current user
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by status (pending, completed, etc.)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.SwaggerTaskListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List authenticated user's tasks
+      tags:
+      - Tasks
+  /api/task/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a task if it belongs to the authenticated user
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Task deleted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Task not found or not owned
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a task
+      tags:
+      - Tasks
+    get:
+      consumes:
+      - application/json
+      description: Returns a task if it belongs to the authenticated user
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Task'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Task not found or not owned
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get a single task by ID
+      tags:
+      - Tasks
+    put:
+      consumes:
+      - application/json
+      description: Updates task fields (partial update allowed) if owned by the user
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated fields
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.Task'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Task'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Task not found or not owned
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a task
+      tags:
+      - Tasks
+  /api/task/new:
+    post:
+      consumes:
+      - application/json
+      description: Creates a task owned by the authenticated user
+      parameters:
+      - description: Task data (title required)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.Task'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Task'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new task
+      tags:
+      - Tasks
+  /api/user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Returns the profile of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.SwaggerUserProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
+      tags:
+      - Users
+  /api/user/task:
+    get:
+      consumes:
+      - application/json
+      description: Returns list of tasks belonging to the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.SwaggerTaskListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get tasks of the current user
+      tags:
+      - Users
+  /api/user/update:
+    patch:
+      consumes:
+      - application/json
+      description: Partially updates user profile (name, email, password)
+      parameters:
+      - description: Updated fields
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateUserBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.SwaggerUserProfileResponse'
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Email already in use
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update current user profile
+      tags:
+      - Users
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates user and returns JWT token in cookie
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginUserBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User login
+      tags:
+      - Auth
+  /logout:
+    post:
+      consumes:
+      - application/json
+      description: Clears the JWT cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logged out successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logout user
+      tags:
+      - Auth
+  /ping:
+    get:
+      consumes:
+      - application/json
+      description: Returns a simple pong message to verify the API is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: pong
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check endpoint
+      tags:
+      - Health
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a pending registration record and sends a verification
+        email.
+      parameters:
+      - description: Registration details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterUserBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Registration request received. Check email for verification
+            link
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Email already registered
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - Auth
+  /verify:
+    get:
+      consumes:
+      - application/json
+      description: Validates the token and email, creates the real user, and deletes
+        the temp verification record.
+      parameters:
+      - description: Verification token
+        in: query
+        name: token
+        required: true
+        type: string
+      - description: User email
+        in: query
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Account verified and activated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid or expired token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Verification record not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Verify email and complete registration
+      tags:
+      - Auth
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: 'JWT Bearer token (format: Bearer <token>)'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

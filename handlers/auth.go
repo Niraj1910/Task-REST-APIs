@@ -11,9 +11,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/auth"
-	"github.com/Niraj1910/Task-REST-APIs.git/model"
-	"github.com/Niraj1910/Task-REST-APIs.git/utils"
+	"github.com/Niraj1910/Task-REST-APIs/auth"
+	"github.com/Niraj1910/Task-REST-APIs/model"
+	"github.com/Niraj1910/Task-REST-APIs/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -30,6 +30,21 @@ type LoginUserBody struct {
 	Password string `json:"password" binding:"required,min=8,max=50"`
 }
 
+// RegisterUser godoc
+// @Summary      Register a new user
+// @Description  Creates a pending registration record and sends a verification email.
+//
+//	The real user is only created after email verification.
+//
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        body body handlers.RegisterUserBody true "Registration details"
+// @Success      201 {object} map[string]interface{} "Registration request received. Check email for verification link"
+// @Failure      400 {object} map[string]string "Invalid input"
+// @Failure      409 {object} map[string]string "Email already registered"
+// @Failure      500 {object} map[string]string "Server error"
+// @Router       /register [post]
 func RegisterUser(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -96,6 +111,19 @@ func RegisterUser(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// VerifyEmailAndRegisterUser godoc
+// @Summary      Verify email and complete registration
+// @Description  Validates the token and email, creates the real user, and deletes the temp verification record.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        token query string true "Verification token"
+// @Param        email query string true "User email"
+// @Success      200 {object} map[string]string "Account verified and activated"
+// @Failure      400 {object} map[string]string "Invalid or expired token"
+// @Failure      404 {object} map[string]string "Verification record not found"
+// @Failure      500 {object} map[string]string "Server error"
+// @Router       /verify [get]
 func VerifyEmailAndRegisterUser(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -174,6 +202,18 @@ func VerifyEmailAndRegisterUser(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// LoginUser godoc
+// @Summary      User login
+// @Description  Authenticates user and returns JWT token in cookie
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        body body handlers.LoginUserBody true "Login credentials"
+// @Success      200 {object} map[string]interface{} "Login successful"
+// @Failure      400 {object} map[string]string "Invalid input"
+// @Failure      401 {object} map[string]string "Invalid credentials"
+// @Failure      500 {object} map[string]string "Server error"
+// @Router       /login [post]
 func LoginUser(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -230,6 +270,14 @@ func LoginUser(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// LogoutUser godoc
+// @Summary      Logout user
+// @Description  Clears the JWT cookie
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} map[string]string "Logged out successfully"
+// @Router       /logout [post]
 func LogoutUser(ctx *gin.Context) {
 	ctx.SetCookie("token", "", -1, "", "", true, true)
 	ctx.JSON(http.StatusOK, gin.H{

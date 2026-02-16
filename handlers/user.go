@@ -5,13 +5,31 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Niraj1910/Task-REST-APIs.git/model"
-	"github.com/Niraj1910/Task-REST-APIs.git/utils"
+	"github.com/Niraj1910/Task-REST-APIs/model"
+	_ "github.com/Niraj1910/Task-REST-APIs/types"
+	"github.com/Niraj1910/Task-REST-APIs/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )
 
+type UpdateUserBody struct {
+	Name     *string `json:"name" binding:"omitempty,min=5,max=100"`
+	Email    *string `json:"email" binding:"omitempty,max=255"`
+	Password *string `json:"password" binding:"omitempty,min=5,max=255"`
+}
+
+// GetUserProfile godoc
+// @Summary      Get current user profile
+// @Description  Returns the profile of the authenticated user
+// @Tags         Users
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} types.SwaggerUserProfileResponse
+// @Failure      401 {object} map[string]string "Unauthorized"
+// @Failure      500 {object} map[string]string "Server error"
+// @Router       /api/user/profile [get]
 func GetUserProfile(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -44,6 +62,20 @@ func GetUserProfile(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+// UpdateUser godoc
+// @Summary      Update current user profile
+// @Description  Partially updates user profile (name, email, password)
+// @Tags         Users
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body body handlers.UpdateUserBody true "Updated fields"
+// @Success      200 {object} types.SwaggerUserProfileResponse
+// @Failure      400 {object} map[string]string "Invalid input"
+// @Failure      401 {object} map[string]string "Unauthorized"
+// @Failure      409 {object} map[string]string "Email already in use"
+// @Failure      500 {object} map[string]string "Server error"
+// @Router       /api/user/update [patch]
 func UpdateUser(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
@@ -52,11 +84,7 @@ func UpdateUser(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		var userBody struct {
-			Name     *string `json:"name" binding:"omitempty,min=5,max=100"`
-			Email    *string `json:"email" binding:"omitempty,max=255"`
-			Password *string `json:"password" binding:"omitempty,min=5,max=255"`
-		}
+		var userBody UpdateUserBody
 
 		err := ctx.ShouldBindBodyWithJSON(&userBody)
 		if err != nil {
@@ -127,6 +155,16 @@ type TaskListResponse struct {
 	} `json:"meta"`
 }
 
+// GetUserTasks godoc
+// @Summary      Get tasks of the current user
+// @Description  Returns list of tasks belonging to the authenticated user
+// @Tags         Users
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} types.SwaggerTaskListResponse
+// @Failure      401 {object} map[string]string "Unauthorized"
+// @Router       /api/user/task [get]
 func GetUserTasks(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
