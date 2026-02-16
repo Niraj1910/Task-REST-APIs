@@ -82,13 +82,13 @@ func main() {
 
 	router.GET("/", func(ctx *gin.Context) {
 
-		scheme := "http"
-		if ctx.Request.TLS != nil {
-			scheme = "https"
+		scheme := "https"
+		if os.Getenv("ENV") == "development" {
+			scheme = "http"
 		}
 		baseUrl := scheme + "://" + ctx.Request.Host
 		ctx.JSON(http.StatusOK, gin.H{
-			"message": "This is Gin server for Task Managment REST APIs",
+			"message": "This is Gin server for Task Management REST APIs",
 			"info":    "Interactive API documentation is available here:",
 			"docs":    baseUrl + "/swagger/index.html",
 			"ping":    baseUrl + "/ping",
