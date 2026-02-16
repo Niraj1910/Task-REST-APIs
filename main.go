@@ -31,6 +31,7 @@ import (
 // @contact.url     https://github.com/Niraj1910
 // @contact.email   nirazshaw156@gmail.com
 
+// @host      task-rest-apis.onrender.com
 // @BasePath  /
 // @schemes   http https
 
@@ -64,7 +65,11 @@ func main() {
 
 	router := gin.Default()
 
-	orgins := []string{"http://localhost:3000", "http://localhost:5173"}
+	orgins := []string{
+		"http://localhost:3000",
+		"http://localhost:5173",
+		"https://task-rest-apis.onrender.com"}
+
 	cliProd := os.Getenv("CLIENT_PROD_URL")
 	if cliProd != "" {
 		orgins = append(orgins, cliProd)

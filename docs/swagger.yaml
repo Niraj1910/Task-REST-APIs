@@ -113,6 +113,7 @@ definitions:
       user:
         $ref: '#/definitions/types.SwaggerUser'
     type: object
+host: task-rest-apis.onrender.com
 info:
   contact:
     email: nirazshaw156@gmail.com
@@ -593,6 +594,7 @@ paths:
       - Auth
 schemes:
 - http
+- https
 securityDefinitions:
   BearerAuth:
     description: 'JWT Bearer token (format: Bearer <token>)'

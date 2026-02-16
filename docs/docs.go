@@ -918,9 +918,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "",
+	Host:             "task-rest-apis.onrender.com",
 	BasePath:         "/",
-	Schemes:          []string{"http"},
+	Schemes:          []string{"http", "https"},
 	Title:            "Golang Task REST API",
 	Description:      "Secure task management API with Golang/Gin Framework, JWT authentication and email verification.",
 	InfoInstanceName: "swagger",

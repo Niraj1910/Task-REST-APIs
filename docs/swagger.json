@@ -1,6 +1,7 @@
 {
     "schemes": [
-        "http"
+        "http",
+        "https"
     ],
     "swagger": "2.0",
     "info": {
@@ -13,6 +14,7 @@
         },
         "version": "1.0"
     },
+    "host": "task-rest-apis.onrender.com",
     "basePath": "/",
     "paths": {
         "/api/task": {
