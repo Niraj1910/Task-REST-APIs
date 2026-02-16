@@ -32,7 +32,7 @@ import (
 // @contact.email   nirazshaw156@gmail.com
 
 // @BasePath  /
-// @schemes   http
+// @schemes   http https
 
 // @securityDefinitions.apikey BearerAuth
 // @in header
